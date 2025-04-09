@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const BACKEND_URL = "https://auto-link-backend.onrender.com";
+const BACKEND_URL = "https://auto-link-bot-6uxa.onrender.com";
 
 function App() {
   const [postId, setPostId] = useState('');
