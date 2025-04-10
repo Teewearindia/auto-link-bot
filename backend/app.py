@@ -1,19 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import firebase_admin
-from firebase_admin import credentials, db
 import requests
 import json
+from firebase_admin import db
 from config import VERIFY_TOKEN, ACCESS_TOKEN, GRAPH_URL, INSTAGRAM_ID
+from firebase_init import initialize_firebase  # 🔥 Firebase initialization module
 
+# 🔹 Flask app setup
 app = Flask(__name__)
 CORS(app)
 
 # 🔹 Initialize Firebase
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://your-project-id.firebaseio.com/'  # ⬅️ Replace with yours
-})
+initialize_firebase()
 
 @app.route('/')
 def home():
