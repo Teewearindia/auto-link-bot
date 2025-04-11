@@ -1,14 +1,16 @@
 services:
   - type: web
-    name: insta-webhook
+    name: auto-link-bot-backend
     env: python
-    region: oregon
-    buildCommand: |
-      cd backend
-      pip install -r requirements.txt
-    startCommand: |
-      cd backend
-      gunicorn app:app
-    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     autoDeploy: true
-    plan: free
+
+  - type: web
+    name: auto-link-bot-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    autoDeploy: true
