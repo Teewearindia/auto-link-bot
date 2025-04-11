@@ -11,19 +11,29 @@ from config import VERIFY_TOKEN, ACCESS_TOKEN, GRAPH_URL, INSTAGRAM_ID
 app = Flask(__name__)
 CORS(app)
 
-# 🔹 Initialize Firebase using environment variable
+# 🔹 Firebase init with debug
 def init_firebase():
     try:
-        firebase_json = os.getenv("FIREBASE_KEY")
-        if not firebase_json:
-            raise Exception("FIREBASE_KEY env var not found")
+        print("🔍 Checking if serviceAccountKey.json exists:", os.path.exists("serviceAccountKey.json"))
 
-        cred_dict = json.loads(firebase_json)
+        if os.path.exists("serviceAccountKey.json"):
+            with open("serviceAccountKey.json", "r") as f:
+                content = f.read()
+                print("📄 Contents of serviceAccountKey.json:", content[:100], "...")  # Only show first 100 chars
+                cred_dict = json.loads(content)
+        else:
+            firebase_json = os.getenv("FIREBASE_KEY")
+            if not firebase_json:
+                raise Exception("FIREBASE_KEY env var not found")
+            print("✅ FIREBASE_KEY env var found.")
+            cred_dict = json.loads(firebase_json)
+
         cred = credentials.Certificate(cred_dict)
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://instaautobot-57f40-default-rtdb.firebaseio.com/'
         })
         print("✅ Firebase initialized")
+
     except Exception as e:
         print("❌ Firebase init failed:", str(e))
 
