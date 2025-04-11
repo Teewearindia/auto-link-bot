@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: insta-webhook
+    env: python
+    region: oregon
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      gunicorn app:app
+    branch: main
+    autoDeploy: true
+    plan: free
