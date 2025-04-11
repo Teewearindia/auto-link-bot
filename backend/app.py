@@ -11,15 +11,19 @@ from config import VERIFY_TOKEN, ACCESS_TOKEN, GRAPH_URL, INSTAGRAM_ID
 app = Flask(__name__)
 CORS(app)
 
-# 🔹 Firebase init with debug
+# 🔹 Initialize Firebase with safety check
 def init_firebase():
     try:
+        if firebase_admin._apps:
+            print("⚠️ Firebase already initialized.")
+            return
+
         print("🔍 Checking if serviceAccountKey.json exists:", os.path.exists("serviceAccountKey.json"))
 
         if os.path.exists("serviceAccountKey.json"):
             with open("serviceAccountKey.json", "r") as f:
                 content = f.read()
-                print("📄 Contents of serviceAccountKey.json:", content[:100], "...")  # Only show first 100 chars
+                print("📄 Contents of serviceAccountKey.json:", content[:100], "...")
                 cred_dict = json.loads(content)
         else:
             firebase_json = os.getenv("FIREBASE_KEY")
