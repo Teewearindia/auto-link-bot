@@ -1,2 +1,4 @@
-# backend/.gitignore
 serviceAccountKey.json
+__pycache__/
+.env
+*.pyc
