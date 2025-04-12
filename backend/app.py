@@ -11,32 +11,22 @@ from config import VERIFY_TOKEN, ACCESS_TOKEN, GRAPH_URL, INSTAGRAM_ID
 app = Flask(__name__)
 CORS(app)
 
-# 🔹 Initialize Firebase with safety check
+# 🔹 Initialize Firebase
 def init_firebase():
     try:
         if firebase_admin._apps:
-            print("⚠️ Firebase already initialized.")
             return
-
-        print("🔍 Checking if serviceAccountKey.json exists:", os.path.exists("serviceAccountKey.json"))
-
         if os.path.exists("serviceAccountKey.json"):
             with open("serviceAccountKey.json", "r") as f:
-                content = f.read()
-                print("📄 Contents of serviceAccountKey.json:", content[:100], "...")
-                cred_dict = json.loads(content)
+                cred_dict = json.load(f)
         else:
             firebase_json = os.getenv("FIREBASE_KEY")
-            if not firebase_json:
-                raise Exception("FIREBASE_KEY env var not found")
-            print("✅ FIREBASE_KEY env var found.")
             cred_dict = json.loads(firebase_json)
 
         cred = credentials.Certificate(cred_dict)
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://instaautobot-57f40-default-rtdb.firebaseio.com/'
         })
-        print("✅ Firebase initialized")
 
     except Exception as e:
         print("❌ Firebase init failed:", str(e))
@@ -67,7 +57,8 @@ def webhook():
 
     if request.method == 'POST':
         data = request.get_json()
-        print("📩 Webhook received:", json.dumps(data, indent=2))
+        print("📩 Webhook received:")
+        print(json.dumps(data, indent=2))
 
         try:
             entry = data.get("entry", [])[0]
@@ -76,14 +67,17 @@ def webhook():
 
             comment = value.get("text", "")
             user_id = value.get("from", {}).get("id")
+            comment_id = value.get("id")
             post_id = value.get("post_id")
 
-            if "link" in comment.lower():
+            if any(word in comment.lower() for word in ["link", "buy", "price"]):
                 ref = db.reference(f"/mappings/{post_id}")
                 product_url = ref.get()
 
                 if product_url:
                     send_dm(user_id, product_url)
+                    reply_to_comment(comment_id, "Check your DM! 👋")
+
         except Exception as e:
             print("❌ Webhook handling error:", str(e))
 
@@ -101,9 +95,24 @@ def send_dm(user_id, text):
 
     try:
         res = requests.post(url, headers=headers, json=payload)
-        print("📬 DM sent:", res.status_code, res.text)
+        print("📬 DM Status:", res.status_code)
+        print("📬 DM Response:", res.text)
     except Exception as e:
         print("❌ DM error:", str(e))
+
+def reply_to_comment(comment_id, text):
+    url = f"{GRAPH_URL}/{comment_id}/replies"
+    payload = {
+        "message": text,
+        "access_token": ACCESS_TOKEN
+    }
+
+    try:
+        res = requests.post(url, data=payload)
+        print("💬 Comment Reply Status:", res.status_code)
+        print("💬 Comment Reply Response:", res.text)
+    except Exception as e:
+        print("❌ Comment reply error:", str(e))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
